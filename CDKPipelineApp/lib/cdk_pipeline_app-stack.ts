@@ -61,19 +61,29 @@ export class CdkPipelineAppStack extends Stack {
         region: process.env.CDK_DEFAULT_REGION
       },
     }));
-    pipeline.addStage(new MyApplication(this, 'Prod', {
+
+    const prodStage = new MyApplication(this, 'Prod', {
       env: {
         account: "025149409875",
         region: process.env.CDK_DEFAULT_REGION
       },
-    }));
+    })
+
+    pipeline.addStage(prodStage, {
+      stackSteps: [{
+        stack: prodStage.appStack,
+        changeSet: [new pipelines.ManualApprovalStep('ChangeSet Approval')],
+      }],
+    });
   }
 }
 
 class MyApplication extends Stage {
+  public readonly appStack: Stack;
+
   constructor(scope: Construct, id: string, props?: StageProps) {
     super(scope, id, props);
 
-    const appStack = new CdkPipelineAppStack(this, 'LambdaApp');
+    this.appStack = new CdkPipelineAppStack(this, 'LambdaApp');
   }
 }
