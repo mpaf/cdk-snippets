@@ -54,10 +54,16 @@ export class CdkPipelineAppStack extends Stack {
     // 'MyApplication' is defined below. Call `addStage` as many times as
     // necessary with any account and region (may be different from the
     // pipeline's).
-    pipeline.addStage(new MyApplication(this, 'Prod', {
+    pipeline.addStage(new MyApplication(this, 'Dev', {
       env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION
+      },
+    }));
+    pipeline.addStage(new MyApplication(this, 'Prod', {
+      env: {
+        account: process.env.CDK_DEPLOY_ACCOUNT,
+        region: process.env.CDK_DEPLOY_REGION
       },
     }));
   }
