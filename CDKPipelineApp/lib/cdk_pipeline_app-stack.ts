@@ -36,6 +36,7 @@ export class CdkPipelineAppStack extends Stack {
     super(scope, id, props);
     
     const pipeline = new pipelines.CodePipeline(this, 'Pipeline', {
+      crossAccountKeys: true,
       synth: new pipelines.ShellStep('Synth', {
         // Use a connection created using the AWS console to authenticate to GitHub
         // Other sources are available.
@@ -62,8 +63,8 @@ export class CdkPipelineAppStack extends Stack {
     }));
     pipeline.addStage(new MyApplication(this, 'Prod', {
       env: {
-        account: process.env.CDK_DEPLOY_ACCOUNT,
-        region: process.env.CDK_DEPLOY_REGION
+        account: "025149409875",
+        region: process.env.CDK_DEFAULT_REGION
       },
     }));
   }
