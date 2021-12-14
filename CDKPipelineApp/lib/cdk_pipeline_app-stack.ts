@@ -72,6 +72,10 @@ export class CdkPipelineAppStack extends Stack {
       stackSteps: [{
         stack: prodStage.appStack,
         changeSet: [new pipelines.ManualApprovalStep('ChangeSet Approval')],
+        post: [new pipelines.ShellStep('Validate Endpoint',
+        {
+          commands: ['curl -Ssf https://my.webservice.com/']
+        })]
       }],
     });
   }
