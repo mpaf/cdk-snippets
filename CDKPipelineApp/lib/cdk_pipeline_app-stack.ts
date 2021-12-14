@@ -44,7 +44,6 @@ export class CdkPipelineAppStack extends Stack {
         primaryOutputDirectory: 'CDKPipelineApp/cdk.out',
         commands: [
           'cd CDKPipelineApp',
-          'ls',
           'npm ci',
           'npm run build',
           'npx cdk synth',

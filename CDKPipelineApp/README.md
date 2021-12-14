@@ -1,9 +1,18 @@
-# Welcome to your CDK TypeScript project!
+# Welcome to your CDK Pipelines project!
 
-This is a blank project for TypeScript development with CDK.
+Bootstrap every target account and region with
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+```sh
+cdk bootstrap --trust <DeploymentAccountID> --cloudformation-execution-policies arn:aws:iam::aws:policy/AdministratorAccess
+```
 
+For cross-account deployment the S3 artifacts bucket needs to be encrypted.
+
+```
+const pipeline = new pipelines.CodePipeline(this, 'Pipeline', {
+      crossAccountKeys: true,
+      synth: ...
+```
 ## Useful commands
 
  * `npm run build`   compile typescript to js
