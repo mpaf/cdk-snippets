@@ -64,7 +64,7 @@ export class CdkPipelineAppStack extends Stack {
     const prodStage = new MyApplication(this, 'Prod', {
       env: {
         account: "025149409875",
-        region: process.env.CDK_DEFAULT_REGION
+        region: "eu-west-1"
       },
     })
 
