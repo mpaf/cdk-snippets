@@ -69,6 +69,9 @@ export class CdkPipelineAppStack extends Stack {
     })
 
     pipeline.addStage(prodStage, {
+      pre: [
+        new pipelines.ConfirmPermissionsBroadening('Check', {stage: prodStage}),
+      ],
       stackSteps: [{
         stack: prodStage.appStack,
         changeSet: [new pipelines.ManualApprovalStep('ChangeSet Approval')],
