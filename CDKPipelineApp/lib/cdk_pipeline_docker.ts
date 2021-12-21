@@ -3,7 +3,6 @@ import * as pipelines from 'aws-cdk-lib/pipelines'
 import { Construct } from 'constructs';
 import * as path from 'path';
 import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
-import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 
 export class DockerStack extends Stack {
   public readonly imageURI: CfnOutput;
@@ -33,7 +32,7 @@ class DockerBuildStage extends Stage {
 }
 
 interface AppRunnerStackProps extends StackProps {
-  imageId: string
+  imageId?: CfnOutput
 }
 
 export class AppRunnerStack extends Stack {
@@ -73,15 +72,16 @@ export class AppRunnerStack extends Stack {
 }
 
 interface AppRunnerStageProps extends StageProps {
-  imageId: string
+  imageId: CfnOutput
 }
 
 class AppRunerStage extends Stage {
   constructor(scope: Construct, id: string, props?: AppRunnerStageProps) {
     super(scope, id, props);
 
+    const imageURI = props?.imageId
     const app_stack = new AppRunnerStack(this, 'AppRunner', {
-      imageId: 'replaceid'
+      imageId: props?.imageId
     })
   }
 }
@@ -106,7 +106,7 @@ export class MyPipelineStack extends Stack {
         ],
       })
     });
-
+    
     const dockerstage = new DockerBuildStage(this, 'DockerBuild', {
       env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -121,7 +121,7 @@ export class MyPipelineStack extends Stack {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION
       },
-      imageId: dockerstage.imageURI.value
+      imageId: dockerstage.imageURI
     }));
 
     const prodStage = new AppRunerStage(this, 'Prod', {
