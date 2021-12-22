@@ -3,10 +3,11 @@ import * as pipelines from 'aws-cdk-lib/pipelines'
 import { Construct } from 'constructs';
 import * as path from 'path';
 import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
+import { ImagePullPrincipalType } from 'aws-cdk-lib/aws-codebuild';
 
 export class DockerStack extends Stack {
 
-  public readonly imageURI: CfnOutput;
+  public readonly imageURI: string;
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -15,10 +16,11 @@ export class DockerStack extends Stack {
       directory: path.join(__dirname, 'container'),
     });
 
-    this.imageURI = new CfnOutput(this, 'ImageURI', {
-      value: image.imageUri,
-      exportName: 'ImageURI'
+    const output = new CfnOutput(this, 'ImageURI', {
+      value: image.imageUri
     });
+    
+    this.imageURI = image.imageUri
 
   }
 }
@@ -34,6 +36,7 @@ class DockerBuildStage extends Stage {
 }
 
 interface AppRunnerStackProps extends StackProps {
+  imageURI: string
 }
 
 export class AppRunnerStack extends Stack {
@@ -59,7 +62,7 @@ export class AppRunnerStack extends Stack {
           accessRoleArn: apprunnerRole.roleArn
         },
         imageRepository: {
-          imageIdentifier: Fn.importValue('ImageURI'),
+          imageIdentifier: props.imageURI,
           imageRepositoryType: 'ECR',
           imageConfiguration: {
             port: '80'
@@ -73,6 +76,7 @@ export class AppRunnerStack extends Stack {
 }
 
 interface AppRunnerStageProps extends StageProps {
+  imageURI: string
 }
 
 class AppRunerStage extends Stage {
@@ -80,6 +84,7 @@ class AppRunerStage extends Stage {
     super(scope, id, props);
 
     const app_stack = new AppRunnerStack(this, 'AppRunner', {
+      imageURI: props.imageURI
     })
   }
 }
@@ -105,27 +110,24 @@ export class MyPipelineStack extends Stack {
       })
     });
     
-    const dockerstage = new DockerBuildStage(this, 'DockerBuild', {
-      env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION
-      }}
-    )
-    
-    pipeline.addStage(dockerstage)
+    const image = new aws_ecr_assets.DockerImageAsset(this, 'hello-world-container', {
+      directory: path.join(__dirname, 'container'),
+    });
     
     pipeline.addStage(new AppRunerStage(this, 'Dev', {
       env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION
-      }
+      },
+      imageURI: image.imageUri
     }));
 
     const prodStage = new AppRunerStage(this, 'Prod', {
       env: {
         account: "025149409875",
         region: "eu-west-1"
-      }
+      },
+      imageURI: image.imageUri
     })
 
     pipeline.addStage(prodStage);
